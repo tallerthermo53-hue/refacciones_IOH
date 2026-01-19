@@ -1,0 +1,811 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>SMCR · Seguimiento de Refacciones</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+/* ===============================
+ TEMA AZUL · INTERFAZ CORPORATIVA
+ =============================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+:root{
+  --azul-1: #0d6efd;
+  --azul-2: #0b5ed7;
+  --azul-3: #084298;
+  --fondo-app: #eef4fc;
+  --fondo-card: #ffffff;
+  --texto-principal: #1f2937;
+  --texto-secundario: #6b7280;
+  --borde-suave: #dbe3f1;
+  --sombra-card: 0 10px 25px rgba(13,110,253,.12);
+  --sombra-boton: 0 6px 15px rgba(13,110,253,.35);
+  --radio: 12px;
+}
+/* === Base === */
+* { box-sizing: border-box; }
+body{
+  margin: 0;
+  font-family: 'Inter', Arial, sans-serif;
+  background:
+    radial-gradient(900px 600px at 10% -10%, rgba(13,110,253,.12), transparent 60%),
+    radial-gradient(700px 500px at 100% 0%, rgba(13,110,253,.10), transparent 50%),
+    var(--fondo-app);
+  color: var(--texto-principal);
+}
+/* === Header === */
+header{
+  background: linear-gradient(135deg, var(--azul-1), var(--azul-3));
+  color: #fff;
+  padding: 18px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(0,0,0,.15);
+}
+header div:first-child{
+  font-weight: 800;
+  letter-spacing: .5px;
+}
+/* === Contenedores === */
+.contenedor{
+  max-width: 15000px;
+  margin: 30px auto;
+  background: var(--fondo-card);
+  padding: 26px;
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-card);
+  border: 1px solid var(--borde-suave);
+}
+/* === Títulos === */
+h3{
+  margin-bottom: 22px;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--azul-3);
+  text-align: center;
+}
+h4{
+  font-weight: 700;
+  color: var(--azul-3);
+}
+
+/* === Formularios (MEJORADO SOLO LAYOUT) === */
+form{
+  /* Se mantiene el display: grid, pero se refinan columnas y espaciados */
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 16px 18px;
+}
+@media (max-width: 820px){
+  form{
+    grid-template-columns: 1fr;
+  }
+}
+label{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--texto-secundario);
+  font-weight: 600;
+}
+input, select, textarea{
+  margin-top: 0;               /* ya usamos gap en label */
+  padding: 10px 12px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--borde-suave);
+  font-family: inherit;
+  transition: border .2s ease, box-shadow .2s ease;
+  background: #fff;
+}
+textarea{ resize: vertical; min-height: 110px; }
+input:focus, select:focus, textarea:focus{
+  outline: none;
+  border-color: var(--azul-1);
+  box-shadow: 0 0 0 3px rgba(13,110,253,.2);
+}
+
+/* Utilidades de rejilla */
+.col-span-2{ grid-column: 1 / -1; }
+.end{ justify-self: end; }
+
+/* === Botones === */
+button{
+  padding: 11px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--azul-1), var(--azul-3));
+  box-shadow: var(--sombra-boton);
+  transition: transform .1s ease, box-shadow .2s ease, filter .2s ease;
+}
+button:hover{
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 10px 22px rgba(13,110,253,.45);
+}
+button:active{
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(13,110,253,.35);
+}
+
+/* === Acciones / navegación === */
+.acciones{
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.nav-bottom{
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+/* === Tabla === */
+.tabla-wrapper{
+  width: 100%;
+  overflow: auto;
+  border-radius: 10px;
+  border: 1px solid var(--borde-suave);
+}
+.tabla{
+  width: 100%;
+  border-collapse: collapse;
+}
+.tabla th{
+  background: #f3f7ff;
+  color: var(--azul-3);
+  font-weight: 800;
+  font-size: 13px;
+}
+.tabla th, .tabla td{
+  border: 1px solid var(--borde-suave);
+  padding: 9px 10px;
+}
+.tabla tbody tr:nth-child(even){
+  background: #f9fbff;
+}
+.tabla tbody tr:hover{
+  background: #eef4ff;
+}
+
+/* === Modal === */
+.modal{
+  position: fixed;
+  inset: 0;
+  background: rgba(13,110,253,.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.modal.activo{ display: flex; }
+.modal-contenido{
+  background: #fff;
+  padding: 22px;
+  width: 90%;
+  max-width: 600px;
+  border-radius: 14px;
+  box-shadow: var(--sombra-card);
+}
+
+/* === Canvas gráfica === */
+#chart-razones{
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--borde-suave);
+  padding: 10px;
+  box-shadow: 0 6px 16px rgba(13,110,253,.15);
+}
+
+/* === Utilidades === */
+.oculto{ display:none; }
+
+/* === Responsive === */
+@media (max-width: 700px){
+  header{
+    flex-direction: column;
+    gap: 6px;
+    text-align: center;
+  }
+  .nav-bottom{
+    justify-content: center;
+  }
+}
+</style>
+</head>
+<body>
+<header>
+  <div>mabe</div>
+  <div>Sistema de Monitoreo y Control de Refacciones</div>
+  <div>Taller Thermo</div>
+</header>
+
+<!-- ================= Sección Captura ================ -->
+<div class="contenedor" id="seccion-captura">
+  <h3>Captura de solicitud de refacción</h3>
+
+  <!-- SOLO REORGANIZADO EL LAYOUT DEL FORMULARIO -->
+  <form id="form-solicitud" enctype="multipart/form-data">
+    <label>
+      Número de Troquel *
+      <input type="text" name="numero_troquel" required />
+    </label>
+
+    <label>
+      Paso *
+      <input type="text" name="paso" required />
+    </label>
+
+    <label class="col-span-2">
+      Descripción de la pieza *
+      <textarea name="descripcion" required></textarea>
+    </label>
+
+    <label>
+      Número de Detalle (opcional)
+      <input type="text" name="detalle" />
+    </label>
+
+    <label>
+      Cantidad solicitada *
+      <input type="number" name="cantidad" required />
+    </label>
+
+    <label>
+      Razón de cambio *
+      <select name="razon" id="razon" required>
+        <option value="">Selecciona...</option>
+        <option>Desgaste</option>
+        <option>Exceso de calzas</option>
+        <option>Con poca vida o sin vida</option>
+        <option>Fractura</option>
+        <option>Para refaccionamiento</option>
+        <option>Para mejora</option>
+        <option>Otro</option>
+      </select>
+    </label>
+
+    <label id="razon_otro_wrap" class="oculto col-span-2">
+      Especifica la razón
+      <input type="text" name="razon_otro" />
+    </label>
+
+    <label>
+      Prioridad *
+      <select name="prioridad" required>
+        <option>Baja</option><option>Media</option><option>Alta</option><option>Urgente</option>
+      </select>
+    </label>
+
+    <label>
+      Matricero que solicita *
+      <select name="matricero" required>
+        <option value="">Selecciona...</option>
+        <option>Alberto Arellano</option>
+        <option>Valentin Trujillo</option>
+        <option>Juan Jose</option>
+        <option>Miguel Rostro</option>
+        <option>Isaac Armendariz</option>
+        <option>Osvaldo Rodriguez</option>
+        <option>Jorge Acosta</option>
+        <option>Jaime de Lira</option>
+        <option>Francisco Vazquez Velazquez</option>
+        <option>Alejandro Borrego</option>
+        <option>Reynaldo Fabian</option>
+        <option>Fernando</option>
+        <option>Francisco Vazquez Torres</option>
+        <option>Aaron Hernandez</option>
+        <option>Rodrigo Bustos</option>
+        <option>Yhair Hernandez</option>
+        <option>Ramon Mora</option>
+        <option>Alfredo Colin</option>
+        <option>Daniel Segovia</option>
+        <option>Manuel Segura</option>
+        <option>Martin Davila</option>
+        <option>Gerardo Trillo</option>
+        <option>Saul Urbina</option>
+        <option>Alejandro</option>
+        <option>Luis Melo</option>
+      </select>
+    </label>
+
+    <label>
+      Parte de troquel *
+      <select name="parte" required><option>Superior</option><option>Inferior</option></select>
+    </label>
+
+    <label>
+      Pieza *
+      <select name="pieza" required><option>Mostrada</option><option>Opuesta</option></select>
+    </label>
+
+    <label class="col-span-2">
+      Imagen de la refacción (opcional)
+      <input type="file" name="imagen" accept="image/*" />
+    </label>
+  </form>
+
+  <div class="acciones">
+    <button type="submit" form="form-solicitud">Guardar solicitud</button>
+    <button type="reset" form="form-solicitud">Limpiar todo</button>
+  </div>
+
+  <div class="nav-bottom">
+    <button id="btn-tabla">Ir a tabla de seguimiento</button>
+    <button id="btn-admin">Administrador</button>
+  </div>
+</div>
+
+<!-- ================= Sección Tabla ================ -->
+<div class="contenedor oculto" id="seccion-tabla">
+  <h3>Tabla de seguimiento</h3>
+  <div class="acciones" style="justify-content:flex-start;">
+    <input type="text" id="filtro-troquel" placeholder="Buscar por Nº de troquel" style="width:250px;" />
+    <select id="filtro-prioridad" style="width:150px;">
+      <option value="">Todas las prioridades</option>
+      <option>Baja</option><option>Media</option><option>Alta</option><option>Urgente</option>
+    </select>
+    <button id="btn-limpiar-filtros">Limpiar</button>
+  </div>
+  <div class="tabla-wrapper">
+    <table class="tabla" id="tabla-solicitudes">
+      <thead>
+        <tr>
+          <th>Fecha</th><th>Nº Troquel</th><th>Paso</th><th>Descripción</th><th>Detalle</th>
+          <th>Cantidad</th><th>Razón</th><th>Prioridad</th><th>Parte</th><th>Pieza</th>
+          <th>Imagen</th><th>Estatus</th><th>Tipo de acero</th><th>Dimensiones</th>
+          <th>ID seguimiento</th><th>Últ. act.</th><th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="nav-bottom">
+    <button id="btn-volver-captura">Volver a Captura</button>
+    <button id="btn-ir-admin">Ir a Administrador</button>
+  </div>
+</div>
+
+<!-- ================= Sección Administrador ================ -->
+<div class="contenedor oculto" id="seccion-admin">
+  <h3>Administrador</h3>
+  <div class="acciones" style="flex-wrap:wrap; justify-content:flex-start;">
+    <input type="text" id="filtro-troquel-admin" placeholder="Filtrar por Nº Troquel" style="width:200px;" />
+    <select id="filtro-razon-admin" style="width:200px;">
+      <option value="">Todas las razones</option>
+      <option>Desgaste</option><option>Exceso de calzas</option><option>Con poca vida o sin vida</option>
+      <option>Fractura</option><option>Para refaccionamiento</option><option>Para mejora</option><option>Otro</option>
+    </select>
+    <label>Semana fiscal: <input type="number" id="filtro-semana" min="1" max="52" style="width:80px;" /></label>
+    <label>Desde: <input type="date" id="filtro-fecha-inicio" /></label>
+    <label>Hasta: <input type="date" id="filtro-fecha-fin" /></label>
+    <button id="btn-limpiar-admin">Limpiar filtros</button>
+    <button id="btn-descargar-grafica">Descargar gráfica</button>
+
+  </div>
+  <canvas id="chart-razones" width="300" height="150"></canvas>
+  <h4 id="contador-solicitudes" style="text-align:center; margin-top:15px;">Total: 0</h4>
+  <div class="nav-bottom">
+    <button id="btn-volver-captura2">Volver a Captura</button>
+    <button id="btn-ir-tabla">Ir a Tabla</button>
+  </div>
+</div>
+
+<!-- ================= Modal Seguimiento ================ -->
+<div id="modal-seguimiento" class="modal">
+  <div class="modal-contenido">
+    <h4>Seguimiento de solicitud</h4>
+    <form id="form-seguimiento">
+      <input type="hidden" name="solicitud_id" id="seguimiento_solicitud_id" />
+      <input type="hidden" name="seguimiento_id" id="seguimiento_id" />
+      <label>Tipo de acero <input type="text" name="tipo_acero" /></label>
+      <label>Dimensiones <input type="text" name="dimensiones" /></label>
+      <label>Estatus
+        <select name="estatus">
+          <option value="">—</option>
+          <option>En proceso</option>
+          <option>Habilito acero</option>
+          <option>Material escuadrado</option>
+          <option>Material rectificado para maquinado</option>
+          <option>Maquinado en CNC</option>
+          <option>Erosionado</option>
+          <option>Templado</option>
+          <option>Material rectificado</option>
+          <option>Terminada para implementar</option>
+          <option>Refaccion Implementada</option>
+        </select>
+      </label>
+      <label>Comentario <textarea name="comentario"></textarea></label>
+      <div class="acciones">
+        <button type="button" id="btn-cerrar-seg">Cerrar</button>
+        <button type="submit">Guardar seguimiento</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- =============== Loader robusto de Chart.js + App =============== -->
+
+<script>
+/**
+ * Carga Chart.js con 3 CDNs en cascada.
+ * Si no carga, se inicializa la app sin gráfica (para que la navegación no se rompa).
+ */
+(function loadChartAndInit() {
+  const urls = [
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+    'https://unpkg.com/chart.js@4.4.0/dist/chart.umd.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js'
+  ];
+  let i = 0;
+  function tryNext() {
+    if (i >= urls.length) {
+      console.warn('No se pudo cargar Chart.js desde ningún CDN. La sección de gráfica mostrará aviso.');
+      initApp();
+      return;
+    }
+    const s = document.createElement('script');
+    s.src = urls[i++];
+    s.defer = true;
+    s.onload = () => { initApp(); };
+    s.onerror = () => { console.warn('Fallo al cargar Chart.js desde:', s.src); tryNext(); };
+    document.head.appendChild(s);
+  }
+  window.initApp = initApp;
+  tryNext();
+})();
+
+/** =============== APP =============== */
+function initApp() {
+  // ---------- Navegación ----------
+  const captura = document.getElementById('seccion-captura');
+  const tabla   = document.getElementById('seccion-tabla');
+  const admin   = document.getElementById('seccion-admin');
+
+  document.getElementById('btn-tabla').onclick = () => {
+    tabla.classList.remove('oculto'); captura.classList.add('oculto'); admin.classList.add('oculto');
+    cargarSolicitudes();
+  };
+  document.getElementById('btn-admin').onclick = () => {
+    admin.classList.remove('oculto'); captura.classList.add('oculto'); tabla.classList.add('oculto');
+    cargarGraficaAdmin();
+  };
+  document.getElementById('btn-volver-captura').onclick = () => {
+    captura.classList.remove('oculto'); tabla.classList.add('oculto'); admin.classList.add('oculto');
+  };
+  document.getElementById('btn-ir-admin').onclick = () => {
+    admin.classList.remove('oculto'); captura.classList.add('oculto'); tabla.classList.add('oculto');
+    cargarGraficaAdmin();
+  };
+  document.getElementById('btn-volver-captura2').onclick = () => {
+    captura.classList.remove('oculto'); tabla.classList.add('oculto'); admin.classList.add('oculto');
+  };
+  document.getElementById('btn-ir-tabla').onclick = () => {
+    tabla.classList.remove('oculto'); captura.classList.add('oculto'); admin.classList.add('oculto');
+    cargarSolicitudes();
+
+
+  };
+
+  // ---------- Mostrar campo "Otro" en razón ----------
+  const razonSel  = document.getElementById('razon');
+  const razonWrap = document.getElementById('razon_otro_wrap');
+  razonSel.addEventListener('change', () => {
+    razonWrap.classList.toggle('oculto', razonSel.value !== 'Otro');
+  });
+
+  // ---------- Guardar solicitud ----------
+  document.getElementById('form-solicitud').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try {
+      const r = await fetch('api/solicitudes_create.php', { method: 'POST', body: fd });
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error);
+      alert('Solicitud guardada. ID: ' + j.id);
+      e.target.reset();
+    } catch (err) {
+      alert('Error: ' + err.message);
+    }
+  });
+
+  // ---------- Filtros automáticos en Tabla ----------
+  document.getElementById('filtro-troquel').addEventListener('input', () => {
+    cargarSolicitudes(
+      document.getElementById('filtro-troquel').value.trim(),
+      document.getElementById('filtro-prioridad').value
+    );
+  });
+  document.getElementById('filtro-prioridad').addEventListener('change', () => {
+    cargarSolicitudes(
+      document.getElementById('filtro-troquel').value.trim(),
+      document.getElementById('filtro-prioridad').value
+    );
+  });
+  document.getElementById('btn-limpiar-filtros').onclick = () => {
+    document.getElementById('filtro-troquel').value = '';
+    document.getElementById('filtro-prioridad').value = '';
+    cargarSolicitudes();
+  };
+
+  // ---------- Cargar Tabla ----------
+  async function cargarSolicitudes(troquel = '', prioridad = '') {
+    const tbody = document.querySelector('#tabla-solicitudes tbody');
+    tbody.innerHTML = '<tr><td colspan="17">Cargando...</td></tr>';
+    try {
+      let url = 'api/solicitudes_list.php';
+      const params = [];
+      if (troquel)   params.push('troquel=' + encodeURIComponent(troquel));
+      if (prioridad) params.push('prioridad=' + encodeURIComponent(prioridad));
+      if (params.length) url += '?' + params.join('&');
+
+      const r = await fetch(url);
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error);
+
+      tbody.innerHTML = '';
+      (j.data || []).forEach((it) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${it.fecha              || ''}</td>
+          <td>${it.numero_troquel     || ''}</td>
+          <td>${it.paso               || ''}</td>
+          <td>${it.descripcion        || ''}</td>
+          <td>${it.detalle            || ''}</td>
+          <td>${it.cantidad           || ''}</td>
+          <td>${it.razon              || ''}</td>
+          <td>${it.prioridad          || ''}</td>
+          <td>${it.parte              || ''}</td>
+          <td>${it.pieza              || ''}</td>
+          <td>${it.imagen ? '<a href="' + it.imagen + '" target="_blank">Ver</a>' : ''}</td>
+          <td>${it.estatus            || ''}</td>
+          <td>${it.tipo_acero         || ''}</td>
+          <td>${it.dimensiones        || ''}</td>
+          <td>${it.seguimiento_id     || ''}</td>
+          <td>${it.ultima_actualizacion || ''}</td>
+          <td><button data-id="${it.id}" data-segid="${it.seguimiento_id || ''}">Editar</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      tbody.innerHTML = '<tr><td colspan="17">Error: ' + err.message + '</td></tr>';
+    }
+  }
+
+  // ---------- Modal Seguimiento ----------
+  const modalSeg = document.getElementById('modal-seguimiento');
+  document.querySelector('#tabla-solicitudes').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-id]');
+    if (!btn) return;
+    document.getElementById('seguimiento_solicitud_id').value = btn.dataset.id;
+    document.getElementById('seguimiento_id').value           = btn.dataset.segid || '';
+    modalSeg.classList.add('activo');
+  });
+  document.getElementById('btn-cerrar-seg').addEventListener('click', () => modalSeg.classList.remove('activo'));
+  document.getElementById('form-seguimiento').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try {
+      const r = await fetch('api/seguimiento_upsert.php', { method: 'POST', body: fd });
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error);
+      alert('Seguimiento guardado.');
+      modalSeg.classList.remove('activo');
+      cargarSolicitudes();
+    } catch (err) {
+      alert('Error: ' + err.message);
+    }
+  });
+
+  // ---------- Gráfica en Administrador ----------
+  let chartInstance = null;
+  async function cargarGraficaAdmin() {
+    // Si Chart.js no cargó, evitamos error y avisamos
+    if (typeof window.Chart === 'undefined') {
+      alert('No se pudo cargar Chart.js desde CDN. Revisa tu conexión o desbloquea el CDN. El resto del sistema funciona.');
+      return;
+    }
+
+    // Filtros
+    const troquel     = document.getElementById('filtro-troquel-admin').value.trim();
+    const razon       = document.getElementById('filtro-razon-admin').value;
+    const semana      = document.getElementById('filtro-semana').value;
+    const fechaInicio = document.getElementById('filtro-fecha-inicio').value;
+    const fechaFin    = document.getElementById('filtro-fecha-fin').value;
+
+    // Armado de URL (troquel/razon hacia backend)
+    let url = 'api/solicitudes_list.php';
+    const params = [];
+    if (troquel) params.push('troquel=' + encodeURIComponent(troquel));
+    if (razon)   params.push('razon=' + encodeURIComponent(razon));
+    if (params.length) url += '?' + params.join('&');
+
+    // Semana fiscal (ISO)
+    const getISOWeek = (d0) => {
+      const d = new Date(Date.UTC(d0.getFullYear(), d0.getMonth(), d0.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    };
+
+    try {
+      const r = await fetch(url);
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error);
+
+      // Datos base
+      let data = j.data || [];
+
+      // Filtro por semana fiscal
+      if (semana) {
+        const wk = parseInt(semana, 10);
+        data = data.filter((item) => {
+          if (!item.fecha) return false;
+          const f = new Date(item.fecha);
+          return getISOWeek(f) === wk;
+        });
+      }
+      // Filtro por rango de fechas
+      if (fechaInicio) {
+        const ini = new Date(fechaInicio);
+        data = data.filter(item => item.fecha && new Date(item.fecha) >= ini);
+      }
+      if (fechaFin) {
+        const fin = new Date(fechaFin);
+        fin.setHours(23, 59, 59, 999);
+        data = data.filter(item => item.fecha && new Date(item.fecha) <= fin);
+      }
+
+      // --- Conteo por razón + Paso + Detalle ---
+      const razonesInfo = {}; // { razon: { count, pasos:Set, detalles:Set } }
+      data.forEach((item) => {
+        const key = item.razon || '—';
+        if (!razonesInfo[key]) {
+          razonesInfo[key] = { count: 0, pasos: new Set(), detalles: new Set() };
+        }
+        razonesInfo[key].count += 1;
+        if (item.paso)    razonesInfo[key].pasos.add(String(item.paso));
+        if (item.detalle) razonesInfo[key].detalles.add(String(item.detalle));
+      });
+
+      // Labels/values para el chart
+      const labels = Object.keys(razonesInfo);
+      const values = labels.map((k) => razonesInfo[k].count);
+
+      // Total
+      document.getElementById('contador-solicitudes').textContent = 'Total: ' + data.length;
+
+      // Destruir chart previo si existe
+      if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+      // Crear chart
+      const ctx = document.getElementById('chart-razones').getContext('2d');
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Solicitudes por razón',
+            data: values,
+            backgroundColor: '#007bff',
+            barThickness: 25,
+            maxBarThickness: 30,
+            categoryPercentage: 0.6,
+            barPercentage: 0.7
+          }]
+        },
+        plugins: [{
+          id: 'customCanvasBackgroundColor',
+          beforeDraw: (chart) => {
+            const ctx2 = chart.ctx;
+            ctx2.save();
+            ctx2.globalCompositeOperation = 'destination-over';
+            ctx2.fillStyle = '#ffffff';
+            ctx2.fillRect(0, 0, chart.width, chart.height);
+            ctx2.restore();
+          }
+        }],
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            title:  { display: true, text: 'Distribución por razón de cambio' },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ` ${ctx.parsed.y} solicitud(es)`,
+                // Agrega Paso(s) y Detalle(s) en el tooltip
+                afterLabel: (ctx) => {
+                  const info = razonesInfo[ctx.label];
+                  if (!info) return '';
+                  const pasos    = Array.from(info.pasos);
+                  const detalles = Array.from(info.detalles);
+                  const pasoTxt  = pasos.length    ? `\nPaso(s): ${pasos.join(', ')}`    : '';
+                  const detTxt   = detalles.length ? `\nDetalle(s): ${detalles.join(', ')}` : '';
+                  return `${pasoTxt}${detTxt}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: { title: { display: true, text: 'Razón de cambio' } },
+            y: {
+              title: { display: true, text: 'Cantidad' },
+              beginAtZero: true,
+              suggestedMax: 10,
+              ticks: { stepSize: 1, precision: 0 }
+            }
+          }
+        }
+      });
+
+      // Descargar gráfica (imagen) + CSV con Paso/Detalle
+     
+document.getElementById('btn-descargar-grafica').onclick = () => {
+    if (!chartInstance) return;
+
+    //  Descargar imagen de la gráfica
+    const link = document.createElement('a');
+    link.href = chartInstance.toBase64Image();
+    link.download = 'grafica_solicitudes.png';
+    link.click();
+
+    //  CSV detallado (una fila por solicitud)
+    let csv = 'Fecha,Número de Troquel,Paso,Detalle,Razón\n';
+
+    data.forEach(item => {
+      const fecha = item.fecha || item.fecha_solicitud || item.created_at || '';
+        const troquel = item.numero_troquel || '';
+        const paso = item.paso || '';
+        const detalle = item.detalle || '';
+        const razon = item.razon || '';
+
+        csv += `"${fecha}","${troquel}","${paso}","${detalle}","${razon}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const urlCSV = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = urlCSV;
+    a.download = 'reporte_solicitudes_admin.csv';
+    a.click();
+
+    URL.revokeObjectURL(urlCSV);
+};
+
+    } catch (err) {
+      alert('Error al cargar gráfica: ' + err.message);
+    }
+  }
+
+  // ---------- Eventos Admin (recarga de gráfica con filtros) ----------
+  document.getElementById('filtro-troquel-admin').addEventListener('input',  cargarGraficaAdmin);
+  document.getElementById('filtro-razon-admin').addEventListener('change',  cargarGraficaAdmin);
+  document.getElementById('filtro-semana').addEventListener('input',        cargarGraficaAdmin);
+  document.getElementById('filtro-fecha-inicio').addEventListener('change', cargarGraficaAdmin);
+  document.getElementById('filtro-fecha-fin').addEventListener('change',    cargarGraficaAdmin);
+  document.getElementById('btn-limpiar-admin').onclick = () => {
+    document.getElementById('filtro-troquel-admin').value = '';
+    document.getElementById('filtro-razon-admin').value   = '';
+    document.getElementById('filtro-semana').value        = '';
+    document.getElementById('filtro-fecha-inicio').value  = '';
+    document.getElementById('filtro-fecha-fin').value     = '';
+    cargarGraficaAdmin();
+  };
+}
+</script>
+
+
+
+</body>
+</html>
